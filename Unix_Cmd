@@ -1,0 +1,275 @@
+LFCE
+Network-Services
+apt-get update && apt-get install
+nfs-kernel-server
+apache2 apache2-doc
+a2ensite default-ssl (a2ensite and tab)
+squid squidguard
+postfix dovecot-imapd dovecot-pop3d
+ip_tables
+lsmod /proc/modules kernel modules (similar to apache modules /etc/apache2/mods-available or a2enmod and tab)
+modprobe -a ip_tables adding a module 
+service manager. ps --pid 1 # systemd systemctl 
+systemctl enable [service] (enabling a service at start time)
+systemctl disable [service]
+
+Packet Filtering
+iptable -L 
+Chains - INPUT, OUTPUT, FORWARD
+targets - ACCEPT, REJECT, IGNORE
+iptables-save, iptables-restore
+iptables-persistent 
+reject ping
+iptables -A INPUT --protocol icmp --in-interface eth0 -j REJECT
+Shell Scripting
+Positional Parameters
+$? 
+result of previous command
+$# 
+number of parameters
+$1 
+first positional parameter similarly $2, $3, …
+Exceptional Handling
+-e mode 
+In this mode any command your script runs which returns a non-zero exitcode - an error in the world of shell - will cause your script to itself terminate immediately with an error.
+Two ways to implement
+#!/bin/sh -e
+set -e
+trap is a snippet of code that the shell executes when it exits or receives a signal. ex:, 
+pressing CTRL-C in the terminal where the script is running generates the INT signal. 
+killing the process by default generates a TERM (I.e., terminate) signal.
+
+#!/bin/sh -e
+
+TMPFILE=$(tempfile)
+trap 'echo "removing $TMPFILE"; rm -f $TMPFILE' INT TERM EXIT
+
+echo TMPFILE=$TMPFILE
+…..
+…..
+Debug
+-x mode to debug a shell script:
+
+#!/bin/bash
+echo 'Hi'
+echo 'I will now fetch you a list of connected users:'
+…..
+
+
+Now, running a shell script with -x option enables the display of commands and its arguments when they are executed. 
+
+nikesh@poison:~$ bash -x script.sh 
++ echo Hi
+Hi
++ echo 'I will now fetch you a list of connected users:'
+I will now fetch you a list of connected users:
+……..
+
+Reference
+http://linuxcommand.org/wss0150.php
+http://www.turnkeylinux.org/blog/shell-error-handling
+http://linuxpoison.blogspot.com/2010/11/how-to-debug-shell-scripts.html
+Standard File Descriptors
+The numbers are file descriptors and only the first three (starting with zero) have a standardized meaning:
+0 - stdin
+1 - stdout
+2 - stderr
+
+You can either redirect a file descriptor to a file with > or redirect it to another file descriptor with >&
+Descriptive example
+3>&1 1>&2 2>&3
+
+The 3>&1 will create a new file descriptor and redirect it to 1 which isSTDOUT. 
+1>&2 will redirect the file descriptor 1 to STDERR and
+ 2>&3 will redirect file descriptor 2 to 3 which is STDOUT.
+So basically STDOUT and STDERR are switched as follows, these are the steps:
+Create a new fd 3 and point it to the fd 1
+Redirect file descriptor 1 to file descriptor 2. If we wouldn't have saved the file descriptor in 3 we would lose the target.
+Redirect file descriptor 2 to file descriptor 3. Now file descriptors one and two are switched.
+If the program now prints something to the file descriptor 1 it will be printed to the file descriptor 2 et vice versa.
+Reference
+3>&1 1>&2 2>&3 - http://unix.stackexchange.com/questions/42728/what-does-31-12-23-do-in-a-script
+Using custom file descriptors to allow control/configurability over stdout and std err https://coderwall.com/p/xcoraw
+Programming Constructs
+Functions
+Commands
+who am i : Displays the user name, terminal id and time and date
+sandeep-kunkunuru pts/0        2012-08-11 13:52 (:0.0)
+mkdir  ~/dev/shell_scripting/
+cd  ~/dev/shell_scripting/
+pwd: Tells the directory in which the shell is
+/home/sandeep-kunkunuru/dev/shell_scripting
+touch test1
+creates an empty file by the name test1
+can be used to create as many empty files as you can simultaneously just  a sequence of file names followed by Touch command to be created.
+cat test
+display contents of file test 1
+cat > test
+opens a file and blinks the cursor indicating that I can type in content.
+type as much as you want and press ctrl + d i.e. ctrl and and d keys together indicating end of document.
+cat < test
+displays contents of file test
+cat test1 test2 > test
+concatenates contents of test1 and test2 files in that order and writes them to the file test.
+mv test1 test4
+renames the files or directories test1 to test4
+rm new 
+if new is a directory -r option is required.e.g. “rm -r new” or “rmdir new”
+otherwise deletes the file
+cp cptest destination/
+copies the file “cptest” to the destination folder
+ln lntest hard_link
+create a hard link file hard_link for the file lntest
+replicates the file means creating a duplicate file physically in same directory and named by the given name (second name).
+ln -s lntest soft_link
+create a soft link (shortcut) for the file lntest
+ls 
+lists all files along with permissions given to the owner, owner group and all users.
+ls -l 
+list all files along with permission in long listing format and total blocks (1024 bytes)
+d -directory, r - 4, w -2, x -1 
+ls -a
+list all files along with hidden files
+umask 
+lists default permissions as an octal number - 0002
+this number is used to derive the default permissions
+for files it is 666 - umask for the files
+for folder it is 777 - umask for the folders
+touch .hidden_file
+creates a hidden file
+On a directory you need x previliges to be able to double click and open it, move to it and list files etc. i.e. essentially execute commands against a directory.
+uname
+display kernel for example
+Linux
+uname -a
+display all information for example
+Linux sandeepkunkunuru-Latitude-E6520 3.2.0-29-generic #46-Ubuntu SMP Fri Jul 27 17:03:23 UTC 2012 x86_64 x86_64 x86_64 GNU/Linux
+file *
+displays all files/folders along with their type. for example
+cptest:      ASCII text
+destination: directory
+wc jazzy
+number of lines, words, alphabets for example
+4 19 96 jazzy
+use -l for just lines and use -w for words
+sort animals
+sort all words in the document in the alphabetical order
+sort 
+blinks the cursor so that we can type in content . Use ctrl + d to sort it.
+cut -d "-" -f 1,3 players
+use - as the delimiter display 1, 3 fields in the file players. for example
+Name-Age
+Sourav-30
+Sachin-35
+Sandeep-30
+michael Phelps-27
+Kobe bryant-34
+dd if=test of=out conv=ucase
+convert an input file test into an output file out after converting content as upper case.
+there are a lot of other applications of dd
+format drives
+extract files from iso images
+dd if-test of=test2 conv=ebcdic
+convert encoding type to european
+man cat
+use q to exit
+sudo apt-get install ncompress
+compress Statement.txt
+this creates the file Statement.txt.Z
+uncompress Statement.txt.Z
+this decompresses the file back to Statement.txt
+zcat Statement.txt.Z
+this command prints the contents of the file Statement.txt from within its compressed form.
+ifconfig
+displays ip address of the system
+which gedit
+prints the location of the current gedit 
+result is /usr/bin/gedit
+whereis gedit
+prints the location details of gedit
+result is “gedit: /usr/bin/gedit /usr/lib/gedit /usr/bin/X11/gedit /usr/share/gedit /usr/share/man/man1/gedit.1.gz”
+xdg_open Statement.txt
+directly opens the file using the corresponding default software application e.g. gedit for txt files
+gksu gedit /usr/bin/openproj
+Open a software application with root privileges.
+result is open the file openproj with the software application gedit as root
+dpkg --list 
+list all packages installed on the system
+strings ~/Downloads/AMEX_to_VIQ_Q3ActualizedPivot.xls
+For each file given, GNU strings prints the printable character sequences that are at least 4 characters long. strings is mainly useful for determining the contents of non-text files.
+history
+Lists all the commands that have been executed thus far
+top 
+list of top processes by the amount of resources that they consume
+htop 
+It is designed to replace the Unix program top
+Special Notations
+/dev/null
+In Unix-like operating systems, /dev/null or the null device is a special file that discards all data written to it (but reports that the write operation succeeded) and provides no data to any process that reads from it (yielding EOF immediately).[1]
+
+In programmer jargon, especially Unix jargon, it may also be called the bit bucket[2] or black hole.
+
+Assignments
+Recursively change extension of files in a folder ex: rename all .so files under the current folder to .dylib 
+find -L . -type f -name "*.so" -print0 | while IFS= read -r -d '' FNAME; do
+    mv -- "$FNAME" "${FNAME%.so}.dylib"
+done
+http://stackoverflow.com/questions/2171966/bash-rename-extension-recursive
+Display all files and folders under the current folder
+
+	Solution
+Use find command to list all files and folders under a specified directory
+
+find ./
+
+Find a command from the command history
+Solution
+Use history command to list all commands executed thus far and then pipe the list to grep to search for the command  of your interest.
+
+history | grep ps
+
+Search for all files of a specific type, at any depth within a given directory, which have a specific string irrespective of the case. 
+	Solution
+	grep -i -r -n  --include=\*.java UPDATE_CONSTRAINT ./
+	
+-i : case insensitive
+-r : recurse
+-n : specify line numbers
+--include=\*.java : search only for java files
+UPDATE_CONSTRAINT string to be searched
+./ : the directory in which you want to search. If its the same as directory you are currently in then specify ./
+	Reference
+http://stackoverflow.com/questions/4121803/how-can-i-use-grep-to-find-a-word-inside-a-folder
+http://stackoverflow.com/questions/221921/grep-exclude-include-syntax-do-not-grep-through-certain-files
+
+Find out if a excel sheet is readable without opening it.
+	Solution
+Use “strings” command to check if the excel sheet contains strings. If you see adequate number of strings in the excel sheet then most probably excel sheet is readable.
+
+strings ~/Downloads/AMEX_to_VIQ_Q3ActualizedPivot.xls
+Reference
+http://stackoverflow.com/questions/1770632/is-it-possible-to-view-an-excel-file-on-linux 
+Find all running processes containing a string and do something with each of the processes e.g. find ‘postgres’ and kill them
+kill -9 `ps aux | grep postgres | grep -v grep | awk ‘{print $2}’`
+http://www.howtogeek.com/howto/ubuntu/kill-a-process-by-process-name-from-ubuntu-command-line/
+Find working directory of a process
+ps aux | grep {process-name} # to get pid
+pwdx 13456 # use pid
+http://www.cyberciti.biz/tips/linux-report-current-working-directory-of-process.html
+Thunderbird is linked to bing how can we change that to google
+
+
+
+
+Appendix
+POSIX
+POSIX :  "Portable Operating System Interface",[1] is a family of standards specified by the IEEE for maintaining compatibility between operating systems. POSIX defines the application programming interface (API), along with command line shells and utility interfaces, for software compatibility with variants of Unix and other operating systems.
+File Descriptors
+The file descriptors for input, output, and error.
+
+
+A file descriptor (FD) is an abstract indicator for accessing a file.
+In POSIX, a file descriptor is an integer, specifically of the C type int. It is an index for an entry in a kernel-resident array data structure called a file descriptor table containing the details of open files. Each process has its own file descriptor table. The process itself cannot read or write the file descriptor table directly it passes the file descriptor to the kernel through a system call, and the kernel will access the file on behalf of the process.
+On Linux, the set of file descriptors open in a process can be accessed under the path /proc/PID/fd/, where PID is the process identifier.
+
+
